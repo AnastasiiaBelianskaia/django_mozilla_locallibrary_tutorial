@@ -82,3 +82,11 @@ class Author(models.Model):
 
     def get_absolute_url(self):
         return reverse('author-detail', args=[str(self.id)])
+ # fieldsets = (
+    #     (None, {
+    #         'fields': ('first_name', 'last_name', ('date_of_birth', 'date_of_death'))
+    #     }),
+    #     ('Book', {
+    #         'fields': ('title', 'display_genre', 'status')
+    #     })
+    # )
