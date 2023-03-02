@@ -15,6 +15,8 @@
       <li><strong>Authors:</strong> {{ num_authors }}</li>
       <li><strong>Genres:</strong> {{ num_genres }}</li>
       <li><strong>Books with certain word:</strong> {{ num_books_contains_word }}</li>
-      <li><strong>Languages:</strong> {{ num_languages }}</li>
+      <li><strong>Languages:</strong> {{ num_language }}</li>
   </ul>
+
+  <p>You have visited this page {{ num_visits }} time{{ num_visits|pluralize }}.</p>
 {% endblock%}
