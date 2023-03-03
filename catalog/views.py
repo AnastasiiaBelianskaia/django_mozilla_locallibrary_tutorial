@@ -1,6 +1,15 @@
+import datetime
+
 from django.shortcuts import render
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required, permission_required
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
+from django.urls import reverse, reverse_lazy
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+
+from catalog.forms import RenewBookForm
 
 from .models import Book, BookInstance, Author, Genre, Language
 
@@ -32,7 +41,7 @@ def index(request, word=None):
 
 class BookListView(generic.ListView):
     model = Book
-    paginate_by = 2
+    paginate_by = 10
 
 
 class BookDetailView(generic.DetailView):
@@ -41,7 +50,7 @@ class BookDetailView(generic.DetailView):
 
 class AuthorListView(generic.ListView):
     model = Author
-    paginate_by = 2
+    paginate_by = 10
 
 
 class AuthorDetailView(generic.DetailView):
@@ -69,3 +78,54 @@ class AllBorrowedBooks(LoginRequiredMixin, generic.ListView):
             BookInstance.objects.filter(status__exact='o').order_by('due_back')
         )
 
+
+@login_required
+@permission_required('catalog.can_mark_returned', raise_exception=True)
+def renew_book_librarian(request, pk):
+    book_instance = get_object_or_404(BookInstance, pk=pk)
+    if request.method == 'POST':
+        form = RenewBookForm(request.POST)
+        if form.is_valid():
+            book_instance.due_back = form.cleaned_data['renewal_date']
+            book_instance.save()
+            return HttpResponseRedirect(reverse('borrowed'))
+    else:
+        proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks=3)
+        form = RenewBookForm(initial={'renewal_date': proposed_renewal_date})
+
+    context = {
+        'form': form,
+        'book_instance': book_instance,
+    }
+    return render(request, 'catalog/book_renew_librarian.html', context)
+
+
+class AuthorCreate(LoginRequiredMixin, CreateView):
+    model = Author
+    fields = ['first_name', 'last_name', 'date_of_birth', 'date_of_death']
+    initial = {'date_of_death': datetime.date.today()}
+
+
+class AuthorUpdate(LoginRequiredMixin, UpdateView):
+    model = Author
+    fields = '__all__'
+
+
+class AuthorDelete(LoginRequiredMixin, DeleteView):
+    model = Author
+    success_url = reverse_lazy('authors')
+
+
+class BookCreate(LoginRequiredMixin, CreateView):
+    model = Book
+    fields = ['title', 'author', 'summary', 'isbn', 'genre', 'language']
+
+
+class BookUpdate(LoginRequiredMixin, UpdateView):
+    model = Book
+    fields = '__all__'
+
+
+class BookDelete(LoginRequiredMixin, DeleteView):
+    model = Book
+    success_url = reverse_lazy('books')
