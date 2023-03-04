@@ -15,13 +15,13 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from .models import Author, Book, BookInstance, Genre, Language
 
 
-def index(request, word=None):
+def index(request):
     num_books = Book.objects.all().count()
     num_instances = BookInstance.objects.all().count()
     num_instances_available = BookInstance.objects.filter(status__exact='a').count()
     num_authors = Author.objects.count()
     num_genres = Genre.objects.all().count()
-    num_books_contains_word = Book.objects.filter(title__icontains=f'{word}').count()
+    num_books_contains_word = Book.objects.filter(title__icontains='word').count()
     num_language = Language.objects.all().count()
     num_visits = request.session.get('num_visits', 0)
     request.session['num_visits'] = num_visits + 1
